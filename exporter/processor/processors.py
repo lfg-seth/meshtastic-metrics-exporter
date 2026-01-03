@@ -144,7 +144,7 @@ class PositionAppProcessor(Processor):
                 conn.commit()
 
             #debug dump some interesting fields
-            logger.debug(f"TIME_FIELD_NUMBER: {position.time}, LATITUDE_I: {position.latitude_i}, "
+            logger.info(f"TIME_FIELD_NUMBER: {position.time}, LATITUDE_I: {position.latitude_i}, "
                          f"LONGITUDE_I: {position.longitude_i}, ALTITUDE: {position.altitude}, "
                          f"PRECISION_BITS: {position.precision_bits}",
                          f"TIMESTAMP_FIELD_NUMBER: {position.timestamp}",
