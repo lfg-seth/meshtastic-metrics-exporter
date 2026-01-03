@@ -146,10 +146,10 @@ class PositionAppProcessor(Processor):
             #debug dump some interesting fields
             logger.info(f"TIME_FIELD_NUMBER: {position.time}, LATITUDE_I: {position.latitude_i}, "
                          f"LONGITUDE_I: {position.longitude_i}, ALTITUDE: {position.altitude}, "
-                         f"PRECISION_BITS: {position.precision_bits}",
-                         f"TIMESTAMP_FIELD_NUMBER: {position.timestamp}",
-                         f"GROUND_SPEED_FIELD_NUMBER: {position.ground_speed}, ",
-                         f"SEQ_NUMBER_FIELD_NUMBER: {position.seq_number}",
+                         f"PRECISION_BITS: {position.precision_bits}, "
+                         f"TIMESTAMP_FIELD_NUMBER: {position.timestamp}, "
+                         f"GROUND_SPEED_FIELD_NUMBER: {position.ground_speed}, "
+                         f"SEQ_NUMBER_FIELD_NUMBER: {position.seq_number}, "
                          f"gps_accuracy: {position.gps_accuracy}")
 
 
