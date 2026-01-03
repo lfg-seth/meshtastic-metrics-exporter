@@ -147,7 +147,7 @@ class PositionAppProcessor(Processor):
             # Dump *exactly* what fields are present in this Position message
             try:
                 pos_dict = MessageToDict(
-                    position,
+                    payload,
                     preserving_proto_field_name=True,  # keeps original field names
                     including_default_value_fields=False
                 )
