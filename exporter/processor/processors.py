@@ -1,9 +1,8 @@
 import os
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from venv import logger
 from google.protobuf.json_format import MessageToDict
-
 import unishox2
 
 try:
@@ -94,6 +93,8 @@ class RemoteHardwareAppProcessor(Processor):
             return
 
 
+
+
 @ProcessorRegistry.register_processor(PortNum.POSITION_APP)
 class PositionAppProcessor(Processor):
     def process(self, payload: bytes, client_details: ClientDetails):
@@ -107,7 +108,14 @@ class PositionAppProcessor(Processor):
 
         if position.latitude_i != 0 and position.longitude_i != 0:
             def db_operation(cur, conn):
-                now = datetime.now().astimezone()  # tz-aware timestamptz
+                # Prefer device timestamp (epoch seconds), fallback to ingest time
+                if getattr(position, "timestamp", 0) > 0:
+                    event_time = datetime.fromtimestamp(
+                        position.timestamp,
+                        tz=timezone.utc
+                    )
+                else:
+                    event_time = datetime.now(timezone.utc)
 
                 # 1) keep “latest position” in node_details
                 cur.execute("""
@@ -123,7 +131,7 @@ class PositionAppProcessor(Processor):
                     position.longitude_i,
                     position.altitude,
                     position.precision_bits,
-                    now,
+                    event_time,
                     client_details.node_id
                 ))
 
@@ -133,7 +141,7 @@ class PositionAppProcessor(Processor):
                         ("time", node_id, latitude_i, longitude_i, altitude, precision)
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """, (
-                    now,
+                    event_time,
                     client_details.node_id,
                     position.latitude_i,
                     position.longitude_i,
@@ -143,15 +151,23 @@ class PositionAppProcessor(Processor):
 
                 conn.commit()
 
-            #debug dump some interesting fields
-            logger.info(f"TIME_FIELD_NUMBER: {position.time}, LATITUDE_I: {position.latitude_i}, "
-                         f"LONGITUDE_I: {position.longitude_i}, ALTITUDE: {position.altitude}, "
-                         f"PRECISION_BITS: {position.precision_bits}, "
-                         f"TIMESTAMP_FIELD_NUMBER: {position.timestamp}, "
-                         f"GROUND_SPEED_FIELD_NUMBER: {position.ground_speed}, "
-                         f"SEQ_NUMBER_FIELD_NUMBER: {position.seq_number}, "
-                         f"gps_accuracy: {position.gps_accuracy}")
+            self.db_handler.execute_db_operation(db_operation)
 
+            # Debug dump (unchanged, just cleaner formatting)
+            logger.info(
+                "POSITION_APP node=%s time=%s lat_i=%s lon_i=%s alt=%s prec=%s "
+                "timestamp=%s ground_speed=%s seq=%s gps_accuracy=%s",
+                client_details.node_id,
+                getattr(position, "time", None),
+                position.latitude_i,
+                position.longitude_i,
+                position.altitude,
+                position.precision_bits,
+                position.timestamp,
+                position.ground_speed,
+                position.seq_number,
+                position.gps_accuracy,
+            )
 
 @ProcessorRegistry.register_processor(PortNum.NODEINFO_APP)
 class NodeInfoAppProcessor(Processor):
