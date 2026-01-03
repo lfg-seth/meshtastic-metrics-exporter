@@ -154,7 +154,7 @@ class PositionAppProcessor(Processor):
             self.db_handler.execute_db_operation(db_operation)
 
             # Debug dump (unchanged, just cleaner formatting)
-            logger.info(
+            logger.debug(
                 "POSITION_APP node=%s time=%s lat_i=%s lon_i=%s alt=%s prec=%s "
                 "timestamp=%s ground_speed=%s seq=%s gps_accuracy=%s",
                 client_details.node_id,
