@@ -143,16 +143,14 @@ class PositionAppProcessor(Processor):
 
                 conn.commit()
 
-            self.db_handler.execute_db_operation(db_operation)
-            # Dump *exactly* what fields are present in this Position message
-            try:
-                pos_dict = MessageToDict(
-                    payload,
-                    preserving_proto_field_name=True,  # keeps original field names
-                )
-                logger.debug("POSITION_APP decoded dict: %s", pos_dict)
-            except Exception:
-                logger.exception("Failed to convert Position protobuf to dict")
+            #debug dump some interesting fields
+            logger.debug(f"TIME_FIELD_NUMBER: {position.time}, LATITUDE_I: {position.latitude_i}, "
+                         f"LONGITUDE_I: {position.longitude_i}, ALTITUDE: {position.altitude}, "
+                         f"PRECISION_BITS: {position.precision_bits}",
+                         f"TIMESTAMP_FIELD_NUMBER: {position.timestamp}",
+                         f"GROUND_SPEED_FIELD_NUMBER: {position.ground_speed}, ",
+                         f"SEQ_NUMBER_FIELD_NUMBER: {position.seq_number}",
+                         f"gps_accuracy: {position.gps_accuracy}")
 
 
 @ProcessorRegistry.register_processor(PortNum.NODEINFO_APP)
