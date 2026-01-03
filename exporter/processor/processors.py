@@ -106,21 +106,43 @@ class PositionAppProcessor(Processor):
 
         if position.latitude_i != 0 and position.longitude_i != 0:
             def db_operation(cur, conn):
+                now = datetime.now().astimezone()  # tz-aware timestamptz
+
+                # 1) keep “latest position” in node_details
                 cur.execute("""
-                            UPDATE node_details
-                            SET latitude   = %s,
-                                longitude  = %s,
-                                altitude   = %s,
-                                precision  = %s,
-                                updated_at = %s
-                            WHERE node_id = %s
-                            """, (position.latitude_i, position.longitude_i, position.altitude, position.precision_bits,
-                                  datetime.now().isoformat(), client_details.node_id))
+                    UPDATE node_details
+                    SET latitude   = %s,
+                        longitude  = %s,
+                        altitude   = %s,
+                        precision  = %s,
+                        updated_at = %s
+                    WHERE node_id = %s
+                """, (
+                    position.latitude_i,
+                    position.longitude_i,
+                    position.altitude,
+                    position.precision_bits,
+                    now,
+                    client_details.node_id
+                ))
+
+                # 2) append to history
+                cur.execute("""
+                    INSERT INTO node_position_metrics
+                        ("time", node_id, latitude_i, longitude_i, altitude, precision)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (
+                    now,
+                    client_details.node_id,
+                    position.latitude_i,
+                    position.longitude_i,
+                    position.altitude,
+                    position.precision_bits
+                ))
+
                 conn.commit()
 
             self.db_handler.execute_db_operation(db_operation)
-        pass
-
 
 @ProcessorRegistry.register_processor(PortNum.NODEINFO_APP)
 class NodeInfoAppProcessor(Processor):
