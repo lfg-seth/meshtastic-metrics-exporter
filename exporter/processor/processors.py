@@ -149,7 +149,6 @@ class PositionAppProcessor(Processor):
                 pos_dict = MessageToDict(
                     payload,
                     preserving_proto_field_name=True,  # keeps original field names
-                    including_default_value_fields=False
                 )
                 logger.debug("POSITION_APP decoded dict: %s", pos_dict)
             except Exception:
