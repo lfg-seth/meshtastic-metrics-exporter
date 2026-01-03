@@ -2,6 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 from venv import logger
+from google.protobuf.json_format import MessageToDict
 
 import unishox2
 
@@ -143,6 +144,17 @@ class PositionAppProcessor(Processor):
                 conn.commit()
 
             self.db_handler.execute_db_operation(db_operation)
+            # Dump *exactly* what fields are present in this Position message
+            try:
+                pos_dict = MessageToDict(
+                    position,
+                    preserving_proto_field_name=True,  # keeps original field names
+                    including_default_value_fields=False
+                )
+                logger.debug("POSITION_APP decoded dict: %s", pos_dict)
+            except Exception:
+                logger.exception("Failed to convert Position protobuf to dict")
+
 
 @ProcessorRegistry.register_processor(PortNum.NODEINFO_APP)
 class NodeInfoAppProcessor(Processor):
